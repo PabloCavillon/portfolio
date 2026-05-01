@@ -1,0 +1,26 @@
+[
+  {
+    "title": "Foto",
+    "description": "Trabajo dificil",
+    "category": "Edicion",
+    "type": "single",
+    "imageUrl": "/uploads/1df12bb2-212e-466a-8c7a-cdd4722edcb3.jpg",
+    "beforeImageUrl": null,
+    "afterImageUrl": null,
+    "order": 1,
+    "id": "1e1c7b67-b39c-422f-bf9f-f8840f990d46",
+    "createdAt": "2026-05-01T05:47:53.835Z"
+  },
+  {
+    "title": "edicion",
+    "description": "edicion",
+    "category": "opa",
+    "type": "before-after",
+    "imageUrl": null,
+    "beforeImageUrl": "/uploads/d5bb3880-833e-42f3-b339-eba6ce7c5b31.jpg",
+    "afterImageUrl": "/uploads/e914dbd6-a6ee-44ff-80b9-f6e297ab9633.jpg",
+    "order": 2,
+    "id": "8ff0444c-07f4-43b7-a01d-f221ef58828b",
+    "createdAt": "2026-05-01T05:48:49.599Z"
+  }
+]
