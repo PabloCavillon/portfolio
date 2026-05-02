@@ -90,7 +90,7 @@ export default async function UserPortfolioPage({ params }: { params: Params }) 
               {collections.map(col => (
                 <a
                   key={col.id}
-                  href={collectionUrl(username, col.id, col.name)}
+                  href={collectionUrl(username, col.name)}
                   className="group block bg-white/3 border border-white/8 rounded-xl p-5 hover:bg-white/5 hover:border-white/15 transition-all"
                 >
                   <p className="text-white/85 text-sm font-medium group-hover:text-white transition-colors">{col.name}</p>

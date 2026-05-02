@@ -8,6 +8,6 @@ export function toSlug(str: string): string {
     || 'coleccion'
 }
 
-export function collectionUrl(username: string, collectionId: string, name: string): string {
-  return `/${username}/c/${collectionId}/${toSlug(name)}`
+export function collectionUrl(username: string, name: string): string {
+  return `/${username}/c/${toSlug(name)}`
 }

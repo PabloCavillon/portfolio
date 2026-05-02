@@ -50,7 +50,7 @@ export default function CollectionsPanel({ initialCollections, username }: Props
   }
 
   function copyLink(col: Collection) {
-    const url = `${window.location.origin}${collectionUrl(username, col.id, col.name)}`
+    const url = `${window.location.origin}${collectionUrl(username, col.name)}`
     navigator.clipboard.writeText(url).then(() => {
       setCopied(col.id)
       setTimeout(() => setCopied(null), 2000)
@@ -134,7 +134,7 @@ export default function CollectionsPanel({ initialCollections, username }: Props
                     {copied === col.id ? '✓ Copiado' : 'Copiar enlace'}
                   </button>
                   <a
-                    href={collectionUrl(username, col.id, col.name)}
+                    href={collectionUrl(username, col.name)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-white/35 hover:text-white text-xs px-3 py-1.5 rounded-lg border border-white/10 hover:border-white/25 transition-colors"

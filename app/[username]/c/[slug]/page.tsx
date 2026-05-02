@@ -1,20 +1,24 @@
 import { getUserByUsername } from '@/lib/users'
-import { getCollectionById } from '@/lib/collections'
+import { getCollectionBySlug, getCollectionById } from '@/lib/collections'
 import { getWorksByCollectionId } from '@/lib/data'
-import { toSlug, collectionUrl } from '@/lib/utils'
+import { collectionUrl } from '@/lib/utils'
 import { notFound, redirect } from 'next/navigation'
 import { type Metadata } from 'next'
 import InfiniteGrid, { type WorkItem } from '@/app/components/InfiniteGrid'
-import CopyLinkButton from '../CopyLinkButton'
+import CopyLinkButton from './CopyLinkButton'
 
 export const dynamic = 'force-dynamic'
 
-type Params = Promise<{ username: string; id: string; slug?: string[] }>
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+type Params = Promise<{ username: string; slug: string }>
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { username, id } = await params
-  const [user, collection] = await Promise.all([getUserByUsername(username), getCollectionById(id)])
-  if (!user || !collection || collection.userId !== user.id) return {}
+  const { username, slug } = await params
+  const user = await getUserByUsername(username)
+  if (!user) return {}
+  const collection = await getCollectionBySlug(user.id, slug)
+  if (!collection) return {}
   const displayName = user.displayName || user.username
   return {
     title: collection.name,
@@ -23,24 +27,26 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       title: `${collection.name} — ${displayName}`,
       description: collection.description || `Colección de ${displayName}`,
     },
-    alternates: { canonical: collectionUrl(username, id, collection.name) },
+    alternates: { canonical: collectionUrl(username, collection.name) },
   }
 }
 
 export default async function CollectionPage({ params }: { params: Params }) {
-  const { username, id, slug } = await params
-  const [user, collection] = await Promise.all([getUserByUsername(username), getCollectionById(id)])
+  const { username, slug } = await params
+  const user = await getUserByUsername(username)
+  if (!user) notFound()
 
-  if (!user || !collection || collection.userId !== user.id) notFound()
-
-  // Redirect to canonical URL if slug is missing or stale
-  const canonical = toSlug(collection.name)
-  const current = slug?.[0]
-  if (current !== canonical) {
-    redirect(collectionUrl(username, id, collection.name))
+  // Backward-compat: old links used /{username}/c/{uuid} — redirect to slug URL
+  if (UUID_RE.test(slug)) {
+    const col = await getCollectionById(slug)
+    if (col && col.userId === user.id) redirect(collectionUrl(username, col.name))
+    notFound()
   }
 
-  const works = await getWorksByCollectionId(id)
+  const collection = await getCollectionBySlug(user.id, slug)
+  if (!collection) notFound()
+
+  const works = await getWorksByCollectionId(collection.id)
   const displayName = user.displayName || user.username
   const workItems: WorkItem[] = works.map(w => ({ ...w, username }))
 

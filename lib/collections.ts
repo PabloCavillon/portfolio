@@ -1,5 +1,6 @@
 import { sql } from './db'
 import type { Collection } from './types'
+import { toSlug } from './utils'
 
 function rowToCollection(row: Record<string, unknown>): Collection {
   return {
@@ -43,6 +44,11 @@ export async function createCollection(userId: string, data: { name: string; des
     RETURNING *, 0 AS work_count
   `
   return rowToCollection(rows[0])
+}
+
+export async function getCollectionBySlug(userId: string, slug: string): Promise<Collection | null> {
+  const collections = await getCollectionsByUserId(userId)
+  return collections.find(c => toSlug(c.name) === slug) ?? null
 }
 
 export async function deleteCollection(id: string, userId: string): Promise<boolean> {
