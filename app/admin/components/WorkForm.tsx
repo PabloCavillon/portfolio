@@ -8,15 +8,7 @@ interface Props {
   onCancel: () => void
 }
 
-function ImageUpload({
-  label,
-  value,
-  onChange,
-}: {
-  label: string
-  value: string | null
-  onChange: (url: string | null) => void
-}) {
+function ImageUpload({ label, value, onChange }: { label: string; value: string | null; onChange: (url: string | null) => void }) {
   const [uploading, setUploading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -25,10 +17,7 @@ function ImageUpload({
     const fd = new FormData()
     fd.append('file', file)
     const res = await fetch('/api/upload', { method: 'POST', body: fd })
-    if (res.ok) {
-      const { url } = await res.json()
-      onChange(url)
-    }
+    if (res.ok) onChange((await res.json()).url)
     setUploading(false)
   }
 
@@ -46,15 +35,11 @@ function ImageUpload({
               type="button"
               onClick={e => { e.stopPropagation(); onChange(null) }}
               className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 text-white text-xs flex items-center justify-center hover:bg-black/90"
-            >
-              ✕
-            </button>
+            >✕</button>
           </div>
         ) : (
           <div className="h-28 flex flex-col items-center justify-center gap-2 text-white/20">
-            {uploading ? (
-              <span className="text-sm">Subiendo...</span>
-            ) : (
+            {uploading ? <span className="text-sm">Subiendo...</span> : (
               <>
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
@@ -65,17 +50,8 @@ function ImageUpload({
           </div>
         )}
       </div>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={e => {
-          const file = e.target.files?.[0]
-          if (file) handleFile(file)
-          e.target.value = ''
-        }}
-      />
+      <input ref={inputRef} type="file" accept="image/*" className="hidden"
+        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = '' }} />
     </div>
   )
 }
@@ -83,7 +59,7 @@ function ImageUpload({
 export default function WorkForm({ initialData, onSaved, onCancel }: Props) {
   const [title, setTitle] = useState(initialData?.title ?? '')
   const [description, setDescription] = useState(initialData?.description ?? '')
-  const [category, setCategory] = useState(initialData?.category ?? '')
+  const [categoriesInput, setCategoriesInput] = useState(initialData?.categories.join('; ') ?? '')
   const [type, setType] = useState<'single' | 'before-after'>(initialData?.type ?? 'single')
   const [imageUrl, setImageUrl] = useState<string | null>(initialData?.imageUrl ?? null)
   const [beforeUrl, setBeforeUrl] = useState<string | null>(initialData?.beforeImageUrl ?? null)
@@ -99,22 +75,12 @@ export default function WorkForm({ initialData, onSaved, onCancel }: Props) {
     setSaving(true)
     setError('')
 
-    const body = {
-      title: title.trim(),
-      description: description.trim(),
-      category: category.trim(),
-      type,
-      imageUrl,
-      beforeImageUrl: beforeUrl,
-      afterImageUrl: afterUrl,
-      order,
-    }
+    const categories = categoriesInput.split(';').map(c => c.trim()).filter(Boolean)
 
-    const url = initialData ? `/api/works/${initialData.id}` : '/api/works'
-    const res = await fetch(url, {
+    const res = await fetch(initialData ? `/api/works/${initialData.id}` : '/api/works', {
       method: initialData ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ title: title.trim(), description: description.trim(), categories, type, imageUrl, beforeImageUrl: beforeUrl, afterImageUrl: afterUrl, order }),
     })
 
     if (res.ok) {
@@ -130,94 +96,62 @@ export default function WorkForm({ initialData, onSaved, onCancel }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="sm:col-span-2">
           <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">Título *</label>
-          <input
-            type="text"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            placeholder="Nombre del trabajo"
-            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-white/20 focus:outline-none focus:border-white/25 transition-colors"
-          />
+          <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Nombre del trabajo"
+            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-white/20 focus:outline-none focus:border-white/25 transition-colors" />
         </div>
 
-        <div>
-          <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">Categoría</label>
-          <input
-            type="text"
-            value={category}
-            onChange={e => setCategory(e.target.value)}
-            placeholder="ej: Retrato, Paisaje..."
-            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-white/20 focus:outline-none focus:border-white/25 transition-colors"
-          />
+        <div className="sm:col-span-2">
+          <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">
+            Categorías <span className="normal-case text-white/30 tracking-normal">(separar con punto y coma)</span>
+          </label>
+          <input type="text" value={categoriesInput} onChange={e => setCategoriesInput(e.target.value)}
+            placeholder="ej: Retrato; Blanco y negro; Paisaje"
+            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-white/20 focus:outline-none focus:border-white/25 transition-colors" />
         </div>
 
         <div>
           <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">Orden</label>
-          <input
-            type="number"
-            value={order}
-            onChange={e => setOrder(parseInt(e.target.value) || 0)}
-            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-white/25 transition-colors"
-          />
+          <input type="number" value={order} onChange={e => setOrder(parseInt(e.target.value) || 0)}
+            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-white/25 transition-colors" />
         </div>
 
         <div className="sm:col-span-2">
           <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">Descripción</label>
-          <textarea
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            rows={2}
+          <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2}
             placeholder="Descripción opcional"
-            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-white/20 focus:outline-none focus:border-white/25 transition-colors resize-none"
-          />
+            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white placeholder-white/20 focus:outline-none focus:border-white/25 transition-colors resize-none" />
         </div>
       </div>
 
-      {/* Type selector */}
       <div>
         <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">Tipo</label>
         <div className="flex gap-2">
           {(['single', 'before-after'] as const).map(t => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setType(t)}
-              className={`flex-1 py-2.5 rounded-lg border text-sm transition-colors ${
-                type === t
-                  ? 'border-white/40 bg-white/10 text-white'
-                  : 'border-white/10 text-white/40 hover:border-white/20 hover:text-white/60'
-              }`}
-            >
+            <button key={t} type="button" onClick={() => setType(t)}
+              className={`flex-1 py-2.5 rounded-lg border text-sm transition-colors ${type === t ? 'border-white/40 bg-white/10 text-white' : 'border-white/10 text-white/40 hover:border-white/20 hover:text-white/60'}`}>
               {t === 'single' ? 'Imagen única' : 'Antes / Después'}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Image uploads */}
-      {type === 'single' ? (
-        <ImageUpload label="Imagen" value={imageUrl} onChange={setImageUrl} />
-      ) : (
-        <div className="grid grid-cols-2 gap-4">
-          <ImageUpload label="Antes" value={beforeUrl} onChange={setBeforeUrl} />
-          <ImageUpload label="Después" value={afterUrl} onChange={setAfterUrl} />
-        </div>
-      )}
+      {type === 'single'
+        ? <ImageUpload label="Imagen" value={imageUrl} onChange={setImageUrl} />
+        : <div className="grid grid-cols-2 gap-4">
+            <ImageUpload label="Antes" value={beforeUrl} onChange={setBeforeUrl} />
+            <ImageUpload label="Después" value={afterUrl} onChange={setAfterUrl} />
+          </div>
+      }
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
 
       <div className="flex gap-3 pt-1">
-        <button
-          type="submit"
-          disabled={saving}
-          className="flex-1 bg-white text-black rounded-lg py-2.5 text-sm font-medium hover:bg-white/90 transition-colors disabled:opacity-50"
-        >
+        <button type="submit" disabled={saving}
+          className="flex-1 bg-white text-black rounded-lg py-2.5 text-sm font-medium hover:bg-white/90 transition-colors disabled:opacity-50">
           {saving ? 'Guardando...' : initialData ? 'Guardar cambios' : 'Crear trabajo'}
         </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-5 py-2.5 border border-white/15 text-white/50 rounded-lg hover:border-white/30 hover:text-white/80 transition-colors text-sm"
-        >
+        <button type="button" onClick={onCancel}
+          className="px-5 py-2.5 border border-white/15 text-white/50 rounded-lg hover:border-white/30 hover:text-white/80 transition-colors text-sm">
           Cancelar
         </button>
       </div>

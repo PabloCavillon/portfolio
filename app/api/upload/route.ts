@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth'
-import { promises as fs } from 'fs'
-import path from 'path'
+import { put } from '@vercel/blob'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']
-const MAX_SIZE = 10 * 1024 * 1024 // 10MB
+const MAX_SIZE = 10 * 1024 * 1024
 
 export async function POST(request: NextRequest) {
-  if (!(await getSession())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const formData = await request.formData()
   const file = formData.get('file') as File | null
@@ -22,12 +20,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Archivo demasiado grande (máx 10MB)' }, { status: 400 })
   }
 
-  const ext = path.extname(file.name) || '.jpg'
-  const filename = `${crypto.randomUUID()}${ext}`
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+  const ext = file.name.split('.').pop() || 'jpg'
+  const blob = await put(`${session.username}/${crypto.randomUUID()}.${ext}`, file, {
+    access: 'public',
+    contentType: file.type,
+  })
 
-  await fs.mkdir(uploadDir, { recursive: true })
-  await fs.writeFile(path.join(uploadDir, filename), Buffer.from(await file.arrayBuffer()))
-
-  return NextResponse.json({ url: `/uploads/${filename}` })
+  return NextResponse.json({ url: blob.url })
 }

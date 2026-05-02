@@ -1,12 +1,22 @@
+export interface User {
+  id: string
+  username: string
+  displayName: string
+  bio: string
+  isAdmin: boolean
+  createdAt: string
+}
+
 export interface Work {
   id: string
+  userId: string
   title: string
   description: string
-  category: string
+  categories: string[]
   type: 'single' | 'before-after'
   imageUrl: string | null
   beforeImageUrl: string | null
   afterImageUrl: string | null
-  createdAt: string
   order: number
+  createdAt: string
 }

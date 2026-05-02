@@ -1,22 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getWorks, createWork } from '@/lib/data'
+import { getWorksByUserId, createWork } from '@/lib/data'
 import { getSession } from '@/lib/auth'
 
+function parseCategories(raw: unknown): string[] {
+  if (Array.isArray(raw)) return (raw as string[]).map(c => String(c).trim()).filter(Boolean)
+  if (typeof raw === 'string') return raw.split(';').map(c => c.trim()).filter(Boolean)
+  return []
+}
+
 export async function GET() {
-  const works = await getWorks()
-  return NextResponse.json(works)
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  return NextResponse.json(await getWorksByUserId(session.userId))
 }
 
 export async function POST(request: NextRequest) {
-  if (!(await getSession())) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const session = await getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const data = await request.json()
-  const work = await createWork({
+  const work = await createWork(session.userId, {
     title: data.title ?? '',
     description: data.description ?? '',
-    category: data.category ?? '',
+    categories: parseCategories(data.categories),
     type: data.type ?? 'single',
     imageUrl: data.imageUrl ?? null,
     beforeImageUrl: data.beforeImageUrl ?? null,

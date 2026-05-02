@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -16,14 +17,14 @@ export default function LoginPage() {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ username, password }),
     })
 
     if (res.ok) {
       router.push('/admin')
       router.refresh()
     } else {
-      setError('Contraseña incorrecta')
+      setError('Usuario o contraseña incorrectos')
       setLoading(false)
     }
   }
@@ -34,13 +35,23 @@ export default function LoginPage() {
         <h1 className="text-2xl font-light text-white mb-1">Admin</h1>
         <p className="text-white/30 text-sm mb-8">Acceso al panel de administración</p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <input
+            type="text"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            placeholder="Usuario"
+            autoFocus
+            autoComplete="username"
+            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/25 focus:outline-none focus:border-white/25 transition-colors"
+            required
+          />
           <input
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
             placeholder="Contraseña"
-            autoFocus
+            autoComplete="current-password"
             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/25 focus:outline-none focus:border-white/25 transition-colors"
             required
           />
@@ -57,7 +68,7 @@ export default function LoginPage() {
         </form>
 
         <a href="/" className="block mt-6 text-center text-white/25 hover:text-white/50 text-sm transition-colors">
-          ← Volver al portfolio
+          ← Inicio
         </a>
       </div>
     </div>

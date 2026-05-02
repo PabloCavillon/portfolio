@@ -1,53 +1,92 @@
-import { promises as fs } from 'fs'
-import path from 'path'
+import { sql } from './db'
 import type { Work } from './types'
 
-const DATA_FILE = path.join(process.cwd(), 'data', 'works.json')
+// @vercel/postgres typed params as Primitive; pg driver serializes JS arrays fine at runtime
+const pgArr = (a: string[]) => a as unknown as string
 
-export async function getWorks(): Promise<Work[]> {
-  try {
-    const raw = await fs.readFile(DATA_FILE, 'utf-8')
-    const works: Work[] = JSON.parse(raw)
-    return works.sort(
-      (a, b) => a.order - b.order || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-  } catch {
-    return []
+function rowToWork(row: Record<string, unknown>): Work {
+  return {
+    id: row.id as string,
+    userId: row.user_id as string,
+    title: row.title as string,
+    description: (row.description as string) || '',
+    categories: Array.isArray(row.categories) ? (row.categories as string[]) : [],
+    type: row.type as 'single' | 'before-after',
+    imageUrl: (row.image_url as string | null) ?? null,
+    beforeImageUrl: (row.before_image_url as string | null) ?? null,
+    afterImageUrl: (row.after_image_url as string | null) ?? null,
+    order: row.order_index as number,
+    createdAt: String(row.created_at),
   }
 }
 
-async function saveWorks(works: Work[]): Promise<void> {
-  await fs.mkdir(path.dirname(DATA_FILE), { recursive: true })
-  await fs.writeFile(DATA_FILE, JSON.stringify(works, null, 2))
+export async function getWorksByUserId(userId: string): Promise<Work[]> {
+  const { rows } = await sql`
+    SELECT * FROM works WHERE user_id = ${userId}
+    ORDER BY order_index ASC, created_at DESC
+  `
+  return rows.map(rowToWork)
 }
 
-export async function getWork(id: string): Promise<Work | null> {
-  const works = await getWorks()
-  return works.find(w => w.id === id) ?? null
+export async function getWorksByUsername(username: string): Promise<Work[]> {
+  const { rows } = await sql`
+    SELECT w.* FROM works w
+    JOIN users u ON w.user_id = u.id
+    WHERE u.username = ${username}
+    ORDER BY w.order_index ASC, w.created_at DESC
+  `
+  return rows.map(rowToWork)
 }
 
-export async function createWork(data: Omit<Work, 'id' | 'createdAt'>): Promise<Work> {
-  const works = await getWorks()
-  const work: Work = { ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() }
-  works.push(work)
-  await saveWorks(works)
-  return work
+export async function getWork(id: string, userId: string): Promise<Work | null> {
+  const { rows } = await sql`
+    SELECT * FROM works WHERE id = ${id} AND user_id = ${userId}
+  `
+  return rows.length ? rowToWork(rows[0]) : null
 }
 
-export async function updateWork(id: string, data: Partial<Omit<Work, 'id' | 'createdAt'>>): Promise<Work | null> {
-  const works = await getWorks()
-  const i = works.findIndex(w => w.id === id)
-  if (i === -1) return null
-  works[i] = { ...works[i], ...data }
-  await saveWorks(works)
-  return works[i]
+export async function createWork(userId: string, data: Omit<Work, 'id' | 'userId' | 'createdAt'>): Promise<Work> {
+  const { rows } = await sql`
+    INSERT INTO works (user_id, title, description, categories, type, image_url, before_image_url, after_image_url, order_index)
+    VALUES (${userId}, ${data.title}, ${data.description}, ${pgArr(data.categories)}, ${data.type},
+            ${data.imageUrl}, ${data.beforeImageUrl}, ${data.afterImageUrl}, ${data.order})
+    RETURNING *
+  `
+  return rowToWork(rows[0])
 }
 
-export async function deleteWork(id: string): Promise<boolean> {
-  const works = await getWorks()
-  const i = works.findIndex(w => w.id === id)
-  if (i === -1) return false
-  works.splice(i, 1)
-  await saveWorks(works)
-  return true
+export async function updateWork(id: string, userId: string, data: Partial<Omit<Work, 'id' | 'userId' | 'createdAt'>>): Promise<Work | null> {
+  const existing = await getWork(id, userId)
+  if (!existing) return null
+
+  const merged = {
+    title: data.title ?? existing.title,
+    description: data.description ?? existing.description,
+    categories: data.categories ?? existing.categories,
+    type: data.type ?? existing.type,
+    imageUrl: 'imageUrl' in data ? data.imageUrl : existing.imageUrl,
+    beforeImageUrl: 'beforeImageUrl' in data ? data.beforeImageUrl : existing.beforeImageUrl,
+    afterImageUrl: 'afterImageUrl' in data ? data.afterImageUrl : existing.afterImageUrl,
+    order: data.order ?? existing.order,
+  }
+
+  const { rows } = await sql`
+    UPDATE works SET
+      title            = ${merged.title},
+      description      = ${merged.description},
+      categories       = ${pgArr(merged.categories)},
+      type             = ${merged.type},
+      image_url        = ${merged.imageUrl},
+      before_image_url = ${merged.beforeImageUrl},
+      after_image_url  = ${merged.afterImageUrl},
+      order_index      = ${merged.order}
+    WHERE id = ${id} AND user_id = ${userId}
+    RETURNING *
+  `
+  return rows.length ? rowToWork(rows[0]) : null
+}
+
+export async function deleteWork(id: string, userId: string): Promise<boolean> {
+  const { rowCount } = await sql`DELETE FROM works WHERE id = ${id} AND user_id = ${userId}`
+  return (rowCount ?? 0) > 0
 }

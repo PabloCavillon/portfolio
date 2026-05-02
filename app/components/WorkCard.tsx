@@ -13,7 +13,7 @@ export default function WorkCard({ work, onClick, featured }: Props) {
   return (
     <button
       onClick={onClick}
-      className={`group relative overflow-hidden rounded-xl bg-white/5 block w-full h-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 ${featured ? 'aspect-[16/9]' : 'aspect-[4/3]'}`}
+      className={`group relative overflow-hidden rounded-xl bg-white/5 block w-full h-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30 ${featured ? 'aspect-video' : 'aspect-4/3'}`}
     >
       {thumb ? (
         <img
@@ -28,7 +28,7 @@ export default function WorkCard({ work, onClick, featured }: Props) {
       )}
 
       {/* Permanent gradient */}
-      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-black/80 via-black/30 to-transparent" />
 
       {/* Info */}
       <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -37,8 +37,8 @@ export default function WorkCard({ work, onClick, featured }: Props) {
             <p className={`text-white/85 font-medium leading-tight group-hover:text-white transition-colors duration-200 truncate ${featured ? 'text-base' : 'text-sm'}`}>
               {work.title}
             </p>
-            {work.category && (
-              <p className="text-white/40 text-xs mt-0.5">{work.category}</p>
+            {work.categories.length > 0 && (
+              <p className="text-white/40 text-xs mt-0.5">{work.categories.join(' · ')}</p>
             )}
           </div>
           {work.type === 'before-after' && (

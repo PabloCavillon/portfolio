@@ -1,7 +1,14 @@
 import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
+import type { User } from './types'
 
 export const SESSION_COOKIE = 'portfolio_session'
+
+export interface SessionPayload {
+  userId: string
+  username: string
+  isAdmin: boolean
+}
 
 function getSecret() {
   const secret = process.env.JWT_SECRET
@@ -9,26 +16,26 @@ function getSecret() {
   return new TextEncoder().encode(secret)
 }
 
-export async function createSessionToken(): Promise<string> {
-  return new SignJWT({ admin: true })
+export async function createSessionToken(user: User): Promise<string> {
+  return new SignJWT({ userId: user.id, username: user.username, isAdmin: user.isAdmin })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
     .sign(getSecret())
 }
 
-export async function verifyToken(token: string): Promise<boolean> {
+export async function verifyToken(token: string): Promise<SessionPayload | null> {
   try {
-    await jwtVerify(token, getSecret())
-    return true
+    const { payload } = await jwtVerify(token, getSecret())
+    return payload as unknown as SessionPayload
   } catch {
-    return false
+    return null
   }
 }
 
-export async function getSession(): Promise<boolean> {
+export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies()
   const token = cookieStore.get(SESSION_COOKIE)?.value
-  if (!token) return false
+  if (!token) return null
   return verifyToken(token)
 }

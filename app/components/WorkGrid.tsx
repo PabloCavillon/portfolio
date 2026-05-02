@@ -8,8 +8,8 @@ export default function WorkGrid({ works }: { works: Work[] }) {
   const [selected, setSelected] = useState<Work | null>(null)
   const [category, setCategory] = useState<string | null>(null)
 
-  const categories = Array.from(new Set(works.map(w => w.category).filter(Boolean)))
-  const filtered = category ? works.filter(w => w.category === category) : works
+  const categories = Array.from(new Set(works.flatMap(w => w.categories)))
+  const filtered = category ? works.filter(w => w.categories.includes(category)) : works
 
   if (works.length === 0) {
     return <p className="text-white/20 text-center py-28 text-sm tracking-widest uppercase">Aún no hay trabajos</p>
