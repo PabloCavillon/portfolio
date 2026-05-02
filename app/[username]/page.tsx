@@ -1,5 +1,6 @@
 import { getUserByUsername } from '@/lib/users'
 import { getWorksByUserId } from '@/lib/data'
+import { getSession } from '@/lib/auth'
 import { notFound } from 'next/navigation'
 import WorkGrid from '@/app/components/WorkGrid'
 
@@ -7,10 +8,11 @@ export const dynamic = 'force-dynamic'
 
 export default async function UserPortfolioPage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params
-  const user = await getUserByUsername(username)
+  const [user, session] = await Promise.all([getUserByUsername(username), getSession()])
   if (!user) notFound()
 
   const works = await getWorksByUserId(user.id)
+  const isOwner = session?.username === username
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-white">
@@ -61,6 +63,11 @@ export default async function UserPortfolioPage({ params }: { params: Promise<{ 
         <p className="text-white/10 text-[11px] uppercase tracking-[0.35em]">
           {user.displayName || user.username} &nbsp;·&nbsp; {new Date().getFullYear()}
         </p>
+        {isOwner && (
+          <a href="/admin" className="inline-block mt-4 text-white/20 hover:text-white/50 text-[11px] uppercase tracking-[0.3em] transition-colors">
+            Admin ↗
+          </a>
+        )}
       </footer>
 
     </main>
