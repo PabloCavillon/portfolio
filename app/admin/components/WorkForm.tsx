@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef } from 'react'
+import { upload } from '@vercel/blob/client'
 import type { Work } from '@/lib/types'
 
 interface Props {
@@ -14,11 +15,17 @@ function ImageUpload({ label, value, onChange }: { label: string; value: string 
 
   async function handleFile(file: File) {
     setUploading(true)
-    const fd = new FormData()
-    fd.append('file', file)
-    const res = await fetch('/api/upload', { method: 'POST', body: fd })
-    if (res.ok) onChange((await res.json()).url)
-    setUploading(false)
+    try {
+      const ext = file.name.split('.').pop() || 'jpg'
+      const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const blob = await upload(uniqueName, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+      })
+      onChange(blob.url)
+    } finally {
+      setUploading(false)
+    }
   }
 
   return (
