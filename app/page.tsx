@@ -74,6 +74,9 @@ export default async function Home() {
         <p className="text-white/10 text-[11px] uppercase tracking-[0.35em]">
           Portfolio &nbsp;·&nbsp; {new Date().getFullYear()}
         </p>
+        <a href="/admin/register" className="inline-block mt-4 text-white/15 hover:text-white/40 text-[11px] uppercase tracking-[0.3em] transition-colors">
+          Acceder
+        </a>
       </footer>
 
     </main>
