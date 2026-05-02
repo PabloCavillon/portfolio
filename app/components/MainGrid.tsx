@@ -2,12 +2,10 @@
 import { useState } from 'react'
 import type { Work } from '@/lib/types'
 import WorkCard from './WorkCard'
-import WorkModal from './WorkModal'
 
 type WorkWithAuthor = Work & { username: string; displayName: string }
 
 export default function MainGrid({ works }: { works: WorkWithAuthor[] }) {
-  const [selected, setSelected] = useState<WorkWithAuthor | null>(null)
   const [category, setCategory] = useState<string | null>(null)
 
   const categories = Array.from(new Set(works.flatMap(w => w.categories)))
@@ -39,25 +37,11 @@ export default function MainGrid({ works }: { works: WorkWithAuthor[] }) {
               className={`animate-fade-up ${isFeatured ? 'sm:col-span-2' : ''}`}
               style={{ animationDelay: `${i * 65}ms` }}
             >
-              <WorkCard
-                work={work}
-                onClick={() => setSelected(work)}
-                featured={isFeatured}
-                author={work.username}
-              />
+              <WorkCard work={work} username={work.username} featured={isFeatured} showAuthor />
             </div>
           )
         })}
       </div>
-
-      {selected && (
-        <WorkModal
-          work={selected}
-          works={filtered}
-          onClose={() => setSelected(null)}
-          onNavigate={w => setSelected(w as WorkWithAuthor)}
-        />
-      )}
     </>
   )
 }

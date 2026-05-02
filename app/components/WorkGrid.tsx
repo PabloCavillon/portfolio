@@ -2,10 +2,8 @@
 import { useState } from 'react'
 import type { Work } from '@/lib/types'
 import WorkCard from './WorkCard'
-import WorkModal from './WorkModal'
 
-export default function WorkGrid({ works }: { works: Work[] }) {
-  const [selected, setSelected] = useState<Work | null>(null)
+export default function WorkGrid({ works, username }: { works: Work[]; username: string }) {
   const [category, setCategory] = useState<string | null>(null)
 
   const categories = Array.from(new Set(works.flatMap(w => w.categories)))
@@ -17,7 +15,6 @@ export default function WorkGrid({ works }: { works: Work[] }) {
 
   return (
     <>
-      {/* Category filter */}
       {categories.length > 0 && (
         <div className="flex gap-2 flex-wrap mb-10">
           <CategoryPill active={category === null} onClick={() => setCategory(null)}>Todos</CategoryPill>
@@ -29,7 +26,6 @@ export default function WorkGrid({ works }: { works: Work[] }) {
         </div>
       )}
 
-      {/* Grid — first card is featured (2 cols wide) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((work, i) => {
           const isFeatured = i === 0 && filtered.length > 1
@@ -39,42 +35,21 @@ export default function WorkGrid({ works }: { works: Work[] }) {
               className={`animate-fade-up ${isFeatured ? 'sm:col-span-2' : ''}`}
               style={{ animationDelay: `${i * 65}ms` }}
             >
-              <WorkCard
-                work={work}
-                onClick={() => setSelected(work)}
-                featured={isFeatured}
-              />
+              <WorkCard work={work} username={username} featured={isFeatured} />
             </div>
           )
         })}
       </div>
-
-      {selected && (
-        <WorkModal
-          work={selected}
-          works={filtered}
-          onClose={() => setSelected(null)}
-          onNavigate={setSelected}
-        />
-      )}
     </>
   )
 }
 
-function CategoryPill({
-  active, onClick, children,
-}: {
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}) {
+function CategoryPill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       onClick={onClick}
       className={`px-4 py-1.5 text-xs uppercase tracking-widest rounded-full border transition-all duration-200 ${
-        active
-          ? 'bg-white text-black border-white'
-          : 'border-white/25 text-white/60 hover:border-white/50 hover:text-white/90'
+        active ? 'bg-white text-black border-white' : 'border-white/25 text-white/60 hover:border-white/50 hover:text-white/90'
       }`}
     >
       {children}

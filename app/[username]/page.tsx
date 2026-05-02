@@ -1,5 +1,6 @@
 import { getUserByUsername } from '@/lib/users'
 import { getWorksByUserId } from '@/lib/data'
+import { getCollectionsByUserId } from '@/lib/collections'
 import { getSession } from '@/lib/auth'
 import { notFound } from 'next/navigation'
 import WorkGrid from '@/app/components/WorkGrid'
@@ -12,7 +13,10 @@ export default async function UserPortfolioPage({ params }: { params: Promise<{ 
   const [user, session] = await Promise.all([getUserByUsername(username), getSession()])
   if (!user) notFound()
 
-  const works = await getWorksByUserId(user.id)
+  const [works, collections] = await Promise.all([
+    getWorksByUserId(user.id),
+    getCollectionsByUserId(user.id),
+  ])
   const isOwner = session?.username === username
 
   return (
@@ -54,10 +58,36 @@ export default async function UserPortfolioPage({ params }: { params: Promise<{ 
         </div>
       </header>
 
+      {/* Collections */}
+      {collections.length > 0 && (
+        <section className="px-6 pb-10 md:px-10">
+          <div className="max-w-5xl mx-auto">
+            <p className="text-white/35 text-[11px] uppercase tracking-[0.4em] mb-5">Colecciones</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {collections.map(col => (
+                <a
+                  key={col.id}
+                  href={`/${username}/c/${col.id}`}
+                  className="group block bg-white/3 border border-white/8 rounded-xl p-5 hover:bg-white/5 hover:border-white/15 transition-all"
+                >
+                  <p className="text-white/85 text-sm font-medium group-hover:text-white transition-colors">{col.name}</p>
+                  {col.description && (
+                    <p className="text-white/40 text-xs mt-1 line-clamp-2">{col.description}</p>
+                  )}
+                  <p className="text-white/30 text-xs mt-3">
+                    {col.workCount} {col.workCount === 1 ? 'trabajo' : 'trabajos'}
+                  </p>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Grid */}
       <section className="px-6 pb-20 md:px-10 md:pb-28">
         <div className="max-w-5xl mx-auto">
-          <WorkGrid works={works} />
+          <WorkGrid works={works} username={username} />
         </div>
       </section>
 

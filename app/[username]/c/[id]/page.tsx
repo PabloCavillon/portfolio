@@ -61,7 +61,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ use
           {works.length === 0 ? (
             <p className="text-white/20 text-center py-24">Esta colección no tiene trabajos todavía.</p>
           ) : (
-            <WorkGrid works={works} />
+            <WorkGrid works={works} username={username} />
           )}
         </div>
       </section>
