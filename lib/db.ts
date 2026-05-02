@@ -10,7 +10,8 @@ export async function initDB() {
       username VARCHAR(50) UNIQUE NOT NULL,
       display_name VARCHAR(100) NOT NULL DEFAULT '',
       bio TEXT NOT NULL DEFAULT '',
-      password_hash TEXT NOT NULL,
+      password_hash TEXT,
+      google_id TEXT UNIQUE,
       is_admin BOOLEAN NOT NULL DEFAULT FALSE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
@@ -33,6 +34,10 @@ export async function initDB() {
   `
 
   await sql`CREATE INDEX IF NOT EXISTS works_user_id_idx ON works(user_id)`
+
+  // Migrations for existing databases
+  await sql`ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL`
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT UNIQUE`
 
   // Seed initial admin if no users exist
   const { rowCount } = await sql`SELECT id FROM users LIMIT 1`

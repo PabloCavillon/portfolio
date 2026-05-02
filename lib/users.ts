@@ -89,6 +89,35 @@ export async function deleteUser(id: string): Promise<boolean> {
   return (rowCount ?? 0) > 0
 }
 
+async function uniqueUsername(base: string): Promise<string> {
+  const clean = base.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 28) || 'user'
+  const candidate = RESERVED.has(clean) ? `u${clean}` : clean
+  const { rows } = await sql`SELECT id FROM users WHERE username = ${candidate}`
+  if (!rows.length) return candidate
+  return `${candidate.slice(0, 24)}${Math.floor(1000 + Math.random() * 9000)}`
+}
+
+export async function upsertGoogleUser(data: {
+  googleId: string
+  email: string
+  name: string
+}): Promise<User> {
+  const { rows: existing } = await sql`
+    SELECT id, username, display_name, bio, is_admin, created_at
+    FROM users WHERE google_id = ${data.googleId}
+  `
+  if (existing.length) return rowToUser(existing[0])
+
+  const username = await uniqueUsername(data.email.split('@')[0])
+  const displayName = data.name || username
+  const { rows } = await sql`
+    INSERT INTO users (username, display_name, bio, google_id, is_admin)
+    VALUES (${username}, ${displayName}, '', ${data.googleId}, FALSE)
+    RETURNING id, username, display_name, bio, is_admin, created_at
+  `
+  return rowToUser(rows[0])
+}
+
 export async function getUsersWithPreview(): Promise<(User & { previewUrl: string | null; workCount: number })[]> {
   const { rows } = await sql`
     SELECT
