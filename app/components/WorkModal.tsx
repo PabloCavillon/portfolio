@@ -60,8 +60,8 @@ export default function WorkModal({ work, works, onClose, onNavigate }: Props) {
         <div className="mt-4 flex items-start justify-between gap-4">
           <div className="min-w-0">
             <h2 className="text-white text-base font-medium">{work.title}</h2>
-            {work.categories.length > 0 && <p className="text-white/40 text-sm mt-0.5">{work.categories.join(' · ')}</p>}
-            {work.description && <p className="text-white/60 text-sm mt-2 leading-relaxed">{work.description}</p>}
+            {work.categories.length > 0 && <p className="text-white/60 text-sm mt-0.5">{work.categories.join(' · ')}</p>}
+            {work.description && <p className="text-white/75 text-sm mt-2 leading-relaxed">{work.description}</p>}
           </div>
           <div className="flex gap-2 shrink-0">
             <button

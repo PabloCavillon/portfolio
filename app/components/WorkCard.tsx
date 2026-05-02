@@ -38,7 +38,7 @@ export default function WorkCard({ work, onClick, featured }: Props) {
               {work.title}
             </p>
             {work.categories.length > 0 && (
-              <p className="text-white/40 text-xs mt-0.5">{work.categories.join(' · ')}</p>
+              <p className="text-white/60 text-xs mt-0.5">{work.categories.join(' · ')}</p>
             )}
           </div>
           {work.type === 'before-after' && (
