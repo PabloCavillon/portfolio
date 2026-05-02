@@ -15,7 +15,7 @@ export default async function Home() {
 
       <header className="relative">
         <div className="relative max-w-5xl mx-auto px-6 md:px-10 pt-20 pb-16 md:pt-32 md:pb-20">
-          <p className="text-white/40 text-[11px] uppercase tracking-[0.45em] mb-8 animate-fade-up">
+          <p className="text-white/60 text-[11px] uppercase tracking-[0.45em] mb-8 animate-fade-up">
             Estudio creativo
           </p>
           <h1
@@ -35,7 +35,7 @@ export default async function Home() {
                   <a
                     key={u.id}
                     href={`/${u.username}`}
-                    className="text-white/40 hover:text-white/80 text-sm transition-colors"
+                    className="text-white/65 hover:text-white text-sm transition-colors"
                   >
                     {u.displayName || u.username}
                   </a>
@@ -43,7 +43,7 @@ export default async function Home() {
               </div>
             )}
             {works.length > 0 && (
-              <span className="text-white/30 text-xs uppercase tracking-[0.3em] shrink-0">
+              <span className="text-white/55 text-xs uppercase tracking-[0.3em] shrink-0">
                 {works.length} {works.length === 1 ? 'trabajo' : 'trabajos'}
               </span>
             )}
@@ -58,10 +58,10 @@ export default async function Home() {
       </section>
 
       <footer className="border-t border-white/5 py-10 px-6 text-center">
-        <p className="text-white/10 text-[11px] uppercase tracking-[0.35em]">
+        <p className="text-white/30 text-[11px] uppercase tracking-[0.35em]">
           Portfolio &nbsp;·&nbsp; {new Date().getFullYear()}
         </p>
-        <a href="/admin/register" className="inline-block mt-4 text-white/15 hover:text-white/40 text-[11px] uppercase tracking-[0.3em] transition-colors">
+        <a href="/admin/register" className="inline-block mt-4 text-white/35 hover:text-white/65 text-[11px] uppercase tracking-[0.3em] transition-colors">
           Acceder
         </a>
       </footer>

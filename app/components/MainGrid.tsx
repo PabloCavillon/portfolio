@@ -14,7 +14,7 @@ export default function MainGrid({ works }: { works: WorkWithAuthor[] }) {
   const filtered = category ? works.filter(w => w.categories.includes(category)) : works
 
   if (works.length === 0) {
-    return <p className="text-white/20 text-center py-28 text-sm tracking-widest uppercase">Aún no hay trabajos</p>
+    return <p className="text-white/40 text-center py-28 text-sm tracking-widest uppercase">Aún no hay trabajos</p>
   }
 
   return (
@@ -67,7 +67,7 @@ function CategoryPill({ active, onClick, children }: { active: boolean; onClick:
     <button
       onClick={onClick}
       className={`px-4 py-1.5 text-xs uppercase tracking-widest rounded-full border transition-all duration-200 ${
-        active ? 'bg-white text-black border-white' : 'border-white/15 text-white/40 hover:border-white/35 hover:text-white/70'
+        active ? 'bg-white text-black border-white' : 'border-white/25 text-white/60 hover:border-white/50 hover:text-white/90'
       }`}
     >
       {children}

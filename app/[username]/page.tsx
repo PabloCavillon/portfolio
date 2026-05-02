@@ -27,7 +27,7 @@ export default async function UserPortfolioPage({ params }: { params: Promise<{ 
       {/* Header */}
       <header className="relative">
         <div className="relative max-w-5xl mx-auto px-6 md:px-10 pt-20 pb-16 md:pt-32 md:pb-20">
-          <p className="text-white/40 text-[11px] uppercase tracking-[0.45em] mb-8 animate-fade-up">
+          <p className="text-white/60 text-[11px] uppercase tracking-[0.45em] mb-8 animate-fade-up">
             Portfolio
           </p>
           <h1
@@ -41,12 +41,12 @@ export default async function UserPortfolioPage({ params }: { params: Promise<{ 
             style={{ animationDelay: '160ms' }}
           >
             {user.bio ? (
-              <p className="text-white/55 text-sm tracking-wide">{user.bio}</p>
+              <p className="text-white/70 text-sm tracking-wide">{user.bio}</p>
             ) : (
-              <p className="text-white/55 text-sm tracking-wide">Fotografía &nbsp;·&nbsp; Edición &nbsp;·&nbsp; Retoque</p>
+              <p className="text-white/70 text-sm tracking-wide">Fotografía &nbsp;·&nbsp; Edición &nbsp;·&nbsp; Retoque</p>
             )}
             {works.length > 0 && (
-              <span className="text-white/40 text-xs uppercase tracking-[0.3em]">
+              <span className="text-white/60 text-xs uppercase tracking-[0.3em]">
                 {works.length} {works.length === 1 ? 'trabajo' : 'trabajos'}
               </span>
             )}
@@ -63,11 +63,11 @@ export default async function UserPortfolioPage({ params }: { params: Promise<{ 
 
       {/* Footer */}
       <footer className="border-t border-white/5 py-10 px-6 text-center">
-        <p className="text-white/20 text-[11px] uppercase tracking-[0.35em]">
+        <p className="text-white/40 text-[11px] uppercase tracking-[0.35em]">
           {user.displayName || user.username} &nbsp;·&nbsp; {new Date().getFullYear()}
         </p>
         {!session && (
-          <a href="/admin/login" className="inline-block mt-4 text-white/15 hover:text-white/40 text-[11px] uppercase tracking-[0.3em] transition-colors">
+          <a href="/admin/login" className="inline-block mt-4 text-white/35 hover:text-white/65 text-[11px] uppercase tracking-[0.3em] transition-colors">
             Acceder
           </a>
         )}

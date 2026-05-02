@@ -35,14 +35,14 @@ export default function WorkCard({ work, onClick, featured, author }: Props) {
       <div className="absolute bottom-0 left-0 right-0 p-4">
         <div className="flex items-end justify-between gap-2">
           <div className="min-w-0">
-            <p className={`text-white/85 font-medium leading-tight group-hover:text-white transition-colors duration-200 truncate ${featured ? 'text-base' : 'text-sm'}`}>
+            <p className={`text-white font-medium leading-tight group-hover:text-white transition-colors duration-200 truncate ${featured ? 'text-base' : 'text-sm'}`}>
               {work.title}
             </p>
             {work.categories.length > 0 && (
-              <p className="text-white/60 text-xs mt-0.5">{work.categories.join(' · ')}</p>
+              <p className="text-white/75 text-xs mt-0.5">{work.categories.join(' · ')}</p>
             )}
             {author && (
-              <p className="text-white/40 text-xs mt-0.5">@{author}</p>
+              <p className="text-white/60 text-xs mt-0.5">@{author}</p>
             )}
           </div>
           {work.type === 'before-after' && (
