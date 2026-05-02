@@ -1,36 +1,33 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [username, setUsername] = useState('')
+  const [displayName, setDisplayName] = useState('')
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('error') === 'oauth') setError('Error al iniciar sesión con Google')
-    if (params.get('error') === 'oauth_config') setError('Google OAuth no está configurado')
-  }, [])
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (password !== confirm) { setError('Las contraseñas no coinciden'); return }
     setLoading(true)
     setError('')
 
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, displayName, password }),
     })
 
     if (res.ok) {
       router.push('/admin')
       router.refresh()
     } else {
-      setError('Usuario o contraseña incorrectos')
+      setError((await res.json()).error || 'Error al crear cuenta')
       setLoading(false)
     }
   }
@@ -38,8 +35,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
       <div className="w-full max-w-xs">
-        <h1 className="text-2xl font-light text-white mb-1">Admin</h1>
-        <p className="text-white/30 text-sm mb-8">Acceso al panel de administración</p>
+        <h1 className="text-2xl font-light text-white mb-1">Crear cuenta</h1>
+        <p className="text-white/30 text-sm mb-8">Registrate para tener tu portfolio</p>
 
         {/* Google */}
         <a
@@ -66,17 +63,35 @@ export default function LoginPage() {
             type="text"
             value={username}
             onChange={e => setUsername(e.target.value)}
-            placeholder="Usuario"
+            placeholder="Usuario (sin espacios)"
+            autoFocus
             autoComplete="username"
             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/25 focus:outline-none focus:border-white/25 transition-colors"
             required
+          />
+          <input
+            type="text"
+            value={displayName}
+            onChange={e => setDisplayName(e.target.value)}
+            placeholder="Nombre para mostrar (opcional)"
+            autoComplete="name"
+            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/25 focus:outline-none focus:border-white/25 transition-colors"
           />
           <input
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
             placeholder="Contraseña"
-            autoComplete="current-password"
+            autoComplete="new-password"
+            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/25 focus:outline-none focus:border-white/25 transition-colors"
+            required
+          />
+          <input
+            type="password"
+            value={confirm}
+            onChange={e => setConfirm(e.target.value)}
+            placeholder="Confirmar contraseña"
+            autoComplete="new-password"
             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/25 focus:outline-none focus:border-white/25 transition-colors"
             required
           />
@@ -88,20 +103,16 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-white text-black rounded-lg py-3 text-sm font-medium hover:bg-white/90 transition-colors disabled:opacity-50"
           >
-            {loading ? 'Entrando...' : 'Entrar'}
+            {loading ? 'Creando cuenta...' : 'Crear cuenta'}
           </button>
         </form>
 
         <p className="mt-6 text-center text-white/25 text-sm">
-          ¿No tenés cuenta?{' '}
-          <a href="/admin/register" className="text-white/50 hover:text-white transition-colors">
-            Registrarse
+          ¿Ya tenés cuenta?{' '}
+          <a href="/admin/login" className="text-white/50 hover:text-white transition-colors">
+            Iniciar sesión
           </a>
         </p>
-
-        <a href="/" className="block mt-3 text-center text-white/20 hover:text-white/40 text-sm transition-colors">
-          ← Inicio
-        </a>
       </div>
     </div>
   )

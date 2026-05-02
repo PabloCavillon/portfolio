@@ -3,7 +3,8 @@ import { jwtVerify } from 'jose'
 import { SESSION_COOKIE } from '@/lib/auth'
 
 export async function proxy(request: NextRequest) {
-  if (request.nextUrl.pathname === '/admin/login') {
+  const { pathname } = request.nextUrl
+  if (pathname === '/admin/login' || pathname === '/admin/register') {
     return NextResponse.next()
   }
 
