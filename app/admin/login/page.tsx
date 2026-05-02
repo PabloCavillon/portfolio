@@ -10,9 +10,17 @@ export default function LoginPage() {
   const router = useRouter()
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('error') === 'oauth') setError('Error al iniciar sesión con Google')
-    if (params.get('error') === 'oauth_config') setError('Google OAuth no está configurado')
+    const err = new URLSearchParams(window.location.search).get('error')
+    if (!err) return
+    const msgs: Record<string, string> = {
+      oauth_config:         'Google OAuth no está configurado',
+      state_mismatch:       'Error de seguridad OAuth (state). Intentá de nuevo.',
+      token_exchange:       'Error al intercambiar código con Google (redirect URI incorrecto).',
+      profile_fetch:        'Error al obtener perfil de Google.',
+      db_error:             'Error al crear cuenta. Revisá los logs.',
+      google_access_denied: 'Acceso denegado por Google (revisá el OAuth consent screen).',
+    }
+    setError(msgs[err] ?? `Error Google: ${err}`)
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {

@@ -9,14 +9,22 @@ function getBaseUrl(request: NextRequest): string {
   return `${proto}://${host}`
 }
 
+function errRedirect(request: NextRequest, code: string) {
+  return NextResponse.redirect(new URL(`/admin/login?error=${code}`, request.url))
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const code = searchParams.get('code')
   const state = searchParams.get('state')
+  const googleError = searchParams.get('error')
   const storedState = request.cookies.get('google_oauth_state')?.value
 
+  // Google returned an error (e.g. access_denied)
+  if (googleError) return errRedirect(request, `google_${googleError}`)
+
   if (!code || !state || state !== storedState) {
-    return NextResponse.redirect(new URL('/admin/login?error=oauth', request.url))
+    return errRedirect(request, 'state_mismatch')
   }
 
   const callbackUrl = `${getBaseUrl(request)}/api/auth/google/callback`
@@ -34,7 +42,9 @@ export async function GET(request: NextRequest) {
   })
 
   if (!tokenRes.ok) {
-    return NextResponse.redirect(new URL('/admin/login?error=oauth', request.url))
+    const body = await tokenRes.text()
+    console.error('[google-callback] token error:', body)
+    return errRedirect(request, 'token_exchange')
   }
 
   const { access_token } = await tokenRes.json()
@@ -43,9 +53,7 @@ export async function GET(request: NextRequest) {
     headers: { Authorization: `Bearer ${access_token}` },
   })
 
-  if (!profileRes.ok) {
-    return NextResponse.redirect(new URL('/admin/login?error=oauth', request.url))
-  }
+  if (!profileRes.ok) return errRedirect(request, 'profile_fetch')
 
   const { id, email, name } = await profileRes.json()
 
@@ -63,7 +71,8 @@ export async function GET(request: NextRequest) {
     })
     response.cookies.delete('google_oauth_state')
     return response
-  } catch {
-    return NextResponse.redirect(new URL('/admin/login?error=oauth', request.url))
+  } catch (e) {
+    console.error('[google-callback] upsert error:', e)
+    return errRedirect(request, 'db_error')
   }
 }
