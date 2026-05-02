@@ -18,5 +18,16 @@ export interface Work {
   beforeImageUrl: string | null
   afterImageUrl: string | null
   order: number
+  collectionId: string | null
+  createdAt: string
+}
+
+export interface Collection {
+  id: string
+  userId: string
+  name: string
+  description: string
+  orderIndex: number
+  workCount: number
   createdAt: string
 }

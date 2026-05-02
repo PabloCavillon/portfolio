@@ -23,6 +23,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       : String(data.categories).split(';').map((c: string) => c.trim()).filter(Boolean)
   }
 
+  // Allow explicit null to unassign collection
+  if ('collectionId' in data) {
+    data.collectionId = data.collectionId ?? null
+  }
+
   const work = await updateWork(id, session.userId, data)
   if (!work) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json(work)

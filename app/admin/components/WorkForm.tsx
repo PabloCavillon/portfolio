@@ -1,10 +1,11 @@
 'use client'
 import { useState, useRef } from 'react'
 import { upload } from '@vercel/blob/client'
-import type { Work } from '@/lib/types'
+import type { Work, Collection } from '@/lib/types'
 
 interface Props {
   initialData?: Work
+  collections?: Collection[]
   onSaved: (work: Work) => void
   onCancel: () => void
 }
@@ -63,7 +64,7 @@ function ImageUpload({ label, value, onChange }: { label: string; value: string 
   )
 }
 
-export default function WorkForm({ initialData, onSaved, onCancel }: Props) {
+export default function WorkForm({ initialData, collections = [], onSaved, onCancel }: Props) {
   const [title, setTitle] = useState(initialData?.title ?? '')
   const [description, setDescription] = useState(initialData?.description ?? '')
   const [categoriesInput, setCategoriesInput] = useState(initialData?.categories.join('; ') ?? '')
@@ -72,6 +73,7 @@ export default function WorkForm({ initialData, onSaved, onCancel }: Props) {
   const [beforeUrl, setBeforeUrl] = useState<string | null>(initialData?.beforeImageUrl ?? null)
   const [afterUrl, setAfterUrl] = useState<string | null>(initialData?.afterImageUrl ?? null)
   const [order, setOrder] = useState(initialData?.order ?? 0)
+  const [collectionId, setCollectionId] = useState<string | null>(initialData?.collectionId ?? null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -87,7 +89,7 @@ export default function WorkForm({ initialData, onSaved, onCancel }: Props) {
     const res = await fetch(initialData ? `/api/works/${initialData.id}` : '/api/works', {
       method: initialData ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: title.trim(), description: description.trim(), categories, type, imageUrl, beforeImageUrl: beforeUrl, afterImageUrl: afterUrl, order }),
+      body: JSON.stringify({ title: title.trim(), description: description.trim(), categories, type, imageUrl, beforeImageUrl: beforeUrl, afterImageUrl: afterUrl, order, collectionId }),
     })
 
     if (res.ok) {
@@ -121,6 +123,22 @@ export default function WorkForm({ initialData, onSaved, onCancel }: Props) {
           <input type="number" value={order} onChange={e => setOrder(parseInt(e.target.value) || 0)}
             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-white/25 transition-colors" />
         </div>
+
+        {collections.length > 0 && (
+          <div>
+            <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">Colección</label>
+            <select
+              value={collectionId ?? ''}
+              onChange={e => setCollectionId(e.target.value || null)}
+              className="w-full bg-[#111] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-white/25 transition-colors"
+            >
+              <option value="">Sin colección</option>
+              {collections.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="sm:col-span-2">
           <label className="block text-white/50 text-xs uppercase tracking-wider mb-2">Descripción</label>

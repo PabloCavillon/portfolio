@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
     beforeImageUrl: data.beforeImageUrl ?? null,
     afterImageUrl: data.afterImageUrl ?? null,
     order: data.order ?? 0,
+    collectionId: data.collectionId ?? null,
   })
 
   return NextResponse.json(work, { status: 201 })

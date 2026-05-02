@@ -1,18 +1,21 @@
 'use client'
 import { useState } from 'react'
-import type { Work, User } from '@/lib/types'
+import type { Work, User, Collection } from '@/lib/types'
 import WorkForm from './WorkForm'
+import CollectionsPanel from './CollectionsPanel'
 
-type Tab = 'works' | 'profile'
+type Tab = 'works' | 'collections' | 'profile'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'works', label: 'Trabajos' },
+  { id: 'collections', label: 'Colecciones' },
   { id: 'profile', label: 'Perfil' },
 ]
 
-export default function AdminDashboard({ initialWorks, user }: { initialWorks: Work[]; user: User }) {
+export default function AdminDashboard({ initialWorks, initialCollections, user }: { initialWorks: Work[]; initialCollections: Collection[]; user: User }) {
   const [tab, setTab] = useState<Tab>('works')
   const [works, setWorks] = useState<Work[]>(initialWorks)
+  const [collections, setCollections] = useState<Collection[]>(initialCollections)
   const [editing, setEditing] = useState<Work | null>(null)
   const [adding, setAdding] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null)
@@ -67,17 +70,17 @@ export default function AdminDashboard({ initialWorks, user }: { initialWorks: W
   const showForm = adding || editing !== null
 
   return (
-    <div className="max-w-3xl mx-auto px-5 py-8">
+    <div className="max-w-3xl mx-auto px-4 sm:px-5 py-6 sm:py-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <a href={`/${user.username}`} className="text-white/30 hover:text-white/70 text-sm transition-colors">
+      <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <a href={`/${user.username}`} className="text-white/30 hover:text-white/70 text-sm transition-colors whitespace-nowrap">
             ← Mi portfolio
           </a>
           <span className="text-white/15 text-sm">|</span>
-          <span className="text-white/50 text-sm">{user.displayName || user.username}</span>
+          <span className="text-white/50 text-sm truncate max-w-30 sm:max-w-none">{user.displayName || user.username}</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
           {user.isAdmin && (
             <a href="/admin/users" className="text-white/30 hover:text-white/70 text-xs uppercase tracking-widest transition-colors">
               Usuarios
@@ -123,6 +126,7 @@ export default function AdminDashboard({ initialWorks, user }: { initialWorks: W
               </h2>
               <WorkForm
                 initialData={editing ?? undefined}
+                collections={collections}
                 onSaved={handleSaved}
                 onCancel={() => { setEditing(null); setAdding(false) }}
               />
@@ -136,8 +140,8 @@ export default function AdminDashboard({ initialWorks, user }: { initialWorks: W
               {works.map(work => {
                 const thumb = work.type === 'single' ? work.imageUrl : (work.afterImageUrl ?? work.beforeImageUrl)
                 return (
-                  <div key={work.id} className="flex items-center gap-4 bg-white/3 rounded-xl p-3.5 border border-white/7">
-                    <div className="w-14 h-14 rounded-lg overflow-hidden bg-white/5 shrink-0">
+                  <div key={work.id} className="flex items-start gap-3 bg-white/3 rounded-xl p-3.5 border border-white/7">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden bg-white/5 shrink-0">
                       {thumb
                         ? <img src={thumb} alt={work.title} className="w-full h-full object-cover" />
                         : <div className="w-full h-full flex items-center justify-center text-white/15 text-xs">—</div>
@@ -153,26 +157,26 @@ export default function AdminDashboard({ initialWorks, user }: { initialWorks: W
                           <span className="text-xs px-1.5 py-px bg-white/10 text-white/50 rounded">A/D</span>
                         )}
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => { setEditing(work); setAdding(false) }}
-                        className="text-white/35 hover:text-white text-xs px-3 py-1.5 rounded-lg border border-white/10 hover:border-white/25 transition-colors"
-                      >
-                        Editar
-                      </button>
-                      {confirmDelete === work.id ? (
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => handleDelete(work.id)} className="text-red-400 text-xs px-3 py-1.5 rounded-lg border border-red-400/30 hover:border-red-400/60 transition-colors">
-                            Confirmar
-                          </button>
-                          <button onClick={() => setConfirmDelete(null)} className="text-white/30 hover:text-white text-xs px-2 py-1.5 transition-colors">✕</button>
-                        </div>
-                      ) : (
-                        <button onClick={() => setConfirmDelete(work.id)} className="text-white/25 hover:text-red-400 text-xs px-3 py-1.5 rounded-lg border border-white/10 hover:border-red-400/30 transition-colors">
-                          Eliminar
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
+                        <button
+                          onClick={() => { setEditing(work); setAdding(false) }}
+                          className="text-white/35 hover:text-white text-xs px-3 py-1.5 rounded-lg border border-white/10 hover:border-white/25 transition-colors"
+                        >
+                          Editar
                         </button>
-                      )}
+                        {confirmDelete === work.id ? (
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => handleDelete(work.id)} className="text-red-400 text-xs px-3 py-1.5 rounded-lg border border-red-400/30 hover:border-red-400/60 transition-colors">
+                              Confirmar
+                            </button>
+                            <button onClick={() => setConfirmDelete(null)} className="text-white/30 hover:text-white text-xs px-2 py-1.5 transition-colors">✕</button>
+                          </div>
+                        ) : (
+                          <button onClick={() => setConfirmDelete(work.id)} className="text-white/25 hover:text-red-400 text-xs px-3 py-1.5 rounded-lg border border-white/10 hover:border-red-400/30 transition-colors">
+                            Eliminar
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )
@@ -180,6 +184,14 @@ export default function AdminDashboard({ initialWorks, user }: { initialWorks: W
             </div>
           )}
         </>
+      )}
+
+      {/* Collections tab */}
+      {tab === 'collections' && (
+        <CollectionsPanel
+          initialCollections={collections}
+          username={user.username}
+        />
       )}
 
       {/* Profile tab */}

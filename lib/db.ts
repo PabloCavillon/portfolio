@@ -33,11 +33,23 @@ export async function initDB() {
     )
   `
 
+  await sql`
+    CREATE TABLE IF NOT EXISTS collections (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name VARCHAR(255) NOT NULL,
+      description TEXT NOT NULL DEFAULT '',
+      order_index INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `
+
   await sql`CREATE INDEX IF NOT EXISTS works_user_id_idx ON works(user_id)`
 
   // Migrations for existing databases
   await sql`ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL`
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT UNIQUE`
+  await sql`ALTER TABLE works ADD COLUMN IF NOT EXISTS collection_id UUID REFERENCES collections(id) ON DELETE SET NULL`
 
   // Seed initial admin if no users exist
   const { rowCount } = await sql`SELECT id FROM users LIMIT 1`

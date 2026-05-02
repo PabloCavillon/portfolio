@@ -33,8 +33,8 @@ export default function WorkModal({ work, works, onClose, onNavigate }: Props) {
   }, [onClose, goPrev, goNext])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 md:p-8">
-      <div className="relative w-full max-w-6xl flex flex-col md:flex-row gap-0 rounded-xl overflow-hidden bg-[#111] max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/95 p-0 md:p-8">
+      <div className="relative w-full max-w-6xl flex flex-col md:flex-row rounded-t-2xl md:rounded-xl overflow-hidden bg-[#111] max-h-[95dvh] md:max-h-[90vh]">
 
         {/* Close */}
         <button
@@ -45,20 +45,20 @@ export default function WorkModal({ work, works, onClose, onNavigate }: Props) {
         </button>
 
         {/* Image */}
-        <div className="flex-1 min-w-0 flex items-center justify-center bg-black">
+        <div className="flex-1 min-w-0 flex items-center justify-center bg-black min-h-0">
           {work.type === 'before-after' && work.beforeImageUrl && work.afterImageUrl ? (
             <BeforeAfterSlider before={work.beforeImageUrl} after={work.afterImageUrl} alt={work.title} />
           ) : work.imageUrl ? (
-            <img src={work.imageUrl} alt={work.title} className="w-full max-h-[90vh] object-contain" />
+            <img src={work.imageUrl} alt={work.title} className="w-full max-h-[60dvh] md:max-h-[90vh] object-contain" />
           ) : (
             <div className="aspect-video flex items-center justify-center text-white/20">Sin imagen</div>
           )}
         </div>
 
         {/* Sidebar */}
-        <div className="w-full md:w-64 shrink-0 flex flex-col justify-between p-6 border-t border-white/8 md:border-t-0 md:border-l md:border-white/8">
+        <div className="w-full md:w-64 shrink-0 flex flex-col justify-between p-5 md:p-6 border-t border-white/8 md:border-t-0 md:border-l md:border-white/8 overflow-y-auto">
           <div className="space-y-3">
-            <h2 className="text-white text-base font-medium leading-snug">{work.title}</h2>
+            <h2 className="text-white text-base font-medium leading-snug pr-6 md:pr-0">{work.title}</h2>
             {work.categories.length > 0 && (
               <p className="text-white/55 text-xs uppercase tracking-wider">{work.categories.join(' · ')}</p>
             )}
@@ -68,7 +68,7 @@ export default function WorkModal({ work, works, onClose, onNavigate }: Props) {
           </div>
 
           {/* Nav */}
-          <div className="flex gap-2 mt-6">
+          <div className="flex gap-2 mt-5 md:mt-6">
             <button
               onClick={goPrev}
               disabled={!hasPrev}

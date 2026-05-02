@@ -16,6 +16,7 @@ function rowToWork(row: Record<string, unknown>): Work {
     beforeImageUrl: (row.before_image_url as string | null) ?? null,
     afterImageUrl: (row.after_image_url as string | null) ?? null,
     order: row.order_index as number,
+    collectionId: (row.collection_id as string | null) ?? null,
     createdAt: String(row.created_at),
   }
 }
@@ -60,9 +61,9 @@ export async function getWork(id: string, userId: string): Promise<Work | null> 
 
 export async function createWork(userId: string, data: Omit<Work, 'id' | 'userId' | 'createdAt'>): Promise<Work> {
   const { rows } = await sql`
-    INSERT INTO works (user_id, title, description, categories, type, image_url, before_image_url, after_image_url, order_index)
+    INSERT INTO works (user_id, title, description, categories, type, image_url, before_image_url, after_image_url, order_index, collection_id)
     VALUES (${userId}, ${data.title}, ${data.description}, ${pgArr(data.categories)}, ${data.type},
-            ${data.imageUrl}, ${data.beforeImageUrl}, ${data.afterImageUrl}, ${data.order})
+            ${data.imageUrl}, ${data.beforeImageUrl}, ${data.afterImageUrl}, ${data.order}, ${data.collectionId ?? null})
     RETURNING *
   `
   return rowToWork(rows[0])
@@ -81,6 +82,7 @@ export async function updateWork(id: string, userId: string, data: Partial<Omit<
     beforeImageUrl: 'beforeImageUrl' in data ? data.beforeImageUrl : existing.beforeImageUrl,
     afterImageUrl: 'afterImageUrl' in data ? data.afterImageUrl : existing.afterImageUrl,
     order: data.order ?? existing.order,
+    collectionId: 'collectionId' in data ? data.collectionId : existing.collectionId,
   }
 
   const { rows } = await sql`
@@ -92,7 +94,8 @@ export async function updateWork(id: string, userId: string, data: Partial<Omit<
       image_url        = ${merged.imageUrl},
       before_image_url = ${merged.beforeImageUrl},
       after_image_url  = ${merged.afterImageUrl},
-      order_index      = ${merged.order}
+      order_index      = ${merged.order},
+      collection_id    = ${merged.collectionId ?? null}
     WHERE id = ${id} AND user_id = ${userId}
     RETURNING *
   `
@@ -102,4 +105,12 @@ export async function updateWork(id: string, userId: string, data: Partial<Omit<
 export async function deleteWork(id: string, userId: string): Promise<boolean> {
   const { rowCount } = await sql`DELETE FROM works WHERE id = ${id} AND user_id = ${userId}`
   return (rowCount ?? 0) > 0
+}
+
+export async function getWorksByCollectionId(collectionId: string): Promise<Work[]> {
+  const { rows } = await sql`
+    SELECT * FROM works WHERE collection_id = ${collectionId}
+    ORDER BY order_index ASC, created_at DESC
+  `
+  return rows.map(rowToWork)
 }
