@@ -20,6 +20,19 @@ function rowToWork(row: Record<string, unknown>): Work {
   }
 }
 
+export async function getAllWorks(): Promise<(Work & { username: string; displayName: string })[]> {
+  const { rows } = await sql`
+    SELECT w.*, u.username, u.display_name
+    FROM works w JOIN users u ON w.user_id = u.id
+    ORDER BY w.order_index ASC, w.created_at DESC
+  `
+  return rows.map(row => ({
+    ...rowToWork(row),
+    username: row.username as string,
+    displayName: (row.display_name as string) || (row.username as string),
+  }))
+}
+
 export async function getWorksByUserId(userId: string): Promise<Work[]> {
   const { rows } = await sql`
     SELECT * FROM works WHERE user_id = ${userId}

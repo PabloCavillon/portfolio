@@ -5,9 +5,10 @@ interface Props {
   work: Work
   onClick: () => void
   featured?: boolean
+  author?: string
 }
 
-export default function WorkCard({ work, onClick, featured }: Props) {
+export default function WorkCard({ work, onClick, featured, author }: Props) {
   const thumb = work.type === 'single' ? work.imageUrl : (work.afterImageUrl ?? work.beforeImageUrl)
 
   return (
@@ -39,6 +40,9 @@ export default function WorkCard({ work, onClick, featured }: Props) {
             </p>
             {work.categories.length > 0 && (
               <p className="text-white/60 text-xs mt-0.5">{work.categories.join(' · ')}</p>
+            )}
+            {author && (
+              <p className="text-white/40 text-xs mt-0.5">@{author}</p>
             )}
           </div>
           {work.type === 'before-after' && (
