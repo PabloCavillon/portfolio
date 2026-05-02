@@ -2,13 +2,37 @@ import { getUserByUsername } from '@/lib/users'
 import { getWorksByUserId } from '@/lib/data'
 import { getCollectionsByUserId } from '@/lib/collections'
 import { getSession } from '@/lib/auth'
+import { collectionUrl } from '@/lib/utils'
 import { notFound } from 'next/navigation'
-import WorkGrid from '@/app/components/WorkGrid'
+import { type Metadata } from 'next'
+import InfiniteGrid, { type WorkItem } from '@/app/components/InfiniteGrid'
 import OwnerBar from '@/app/components/OwnerBar'
+import GuestBar from '@/app/components/GuestBar'
 
 export const dynamic = 'force-dynamic'
 
-export default async function UserPortfolioPage({ params }: { params: Promise<{ username: string }> }) {
+type Params = Promise<{ username: string }>
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const { username } = await params
+  const user = await getUserByUsername(username)
+  if (!user) return {}
+  const displayName = user.displayName || user.username
+  const works = await getWorksByUserId(user.id)
+  const ogImage = works.find(w => w.imageUrl)?.imageUrl
+  return {
+    title: displayName,
+    description: user.bio || `Portfolio de fotografía de ${displayName}`,
+    openGraph: {
+      title: `${displayName} · Portfolio`,
+      description: user.bio || `Portfolio de fotografía de ${displayName}`,
+      ...(ogImage ? { images: [ogImage] } : {}),
+    },
+    twitter: { card: 'summary_large_image' },
+  }
+}
+
+export default async function UserPortfolioPage({ params }: { params: Params }) {
   const { username } = await params
   const [user, session] = await Promise.all([getUserByUsername(username), getSession()])
   if (!user) notFound()
@@ -18,17 +42,16 @@ export default async function UserPortfolioPage({ params }: { params: Promise<{ 
     getCollectionsByUserId(user.id),
   ])
   const isOwner = session?.username === username
+  const workItems: WorkItem[] = works.map(w => ({ ...w, username }))
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-white">
 
-      {isOwner && <OwnerBar />}
+      {isOwner ? <OwnerBar /> : !session && <GuestBar />}
 
-      {/* Ambient glows */}
       <div className="pointer-events-none fixed -top-48 -left-24 h-128 w-lg rounded-full bg-white/2 blur-[120px]" />
       <div className="pointer-events-none fixed -top-16 right-1/4 h-72 w-72 rounded-full bg-white/1 blur-[90px]" />
 
-      {/* Header */}
       <header className="relative">
         <div className="relative max-w-5xl mx-auto px-6 md:px-10 pt-20 pb-16 md:pt-32 md:pb-20">
           <p className="text-white/60 text-[11px] uppercase tracking-[0.45em] mb-8 animate-fade-up">
@@ -67,7 +90,7 @@ export default async function UserPortfolioPage({ params }: { params: Promise<{ 
               {collections.map(col => (
                 <a
                   key={col.id}
-                  href={`/${username}/c/${col.id}`}
+                  href={collectionUrl(username, col.id, col.name)}
                   className="group block bg-white/3 border border-white/8 rounded-xl p-5 hover:bg-white/5 hover:border-white/15 transition-all"
                 >
                   <p className="text-white/85 text-sm font-medium group-hover:text-white transition-colors">{col.name}</p>
@@ -87,20 +110,14 @@ export default async function UserPortfolioPage({ params }: { params: Promise<{ 
       {/* Grid */}
       <section className="px-6 pb-20 md:px-10 md:pb-28">
         <div className="max-w-5xl mx-auto">
-          <WorkGrid works={works} username={username} />
+          <InfiniteGrid works={workItems} />
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="border-t border-white/5 py-10 px-6 text-center">
         <p className="text-white/40 text-[11px] uppercase tracking-[0.35em]">
           {user.displayName || user.username} &nbsp;·&nbsp; {new Date().getFullYear()}
         </p>
-        {!session && (
-          <a href="/admin/login" className="inline-block mt-4 text-white/35 hover:text-white/65 text-[11px] uppercase tracking-[0.3em] transition-colors">
-            Acceder
-          </a>
-        )}
       </footer>
 
     </main>

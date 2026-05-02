@@ -1,11 +1,38 @@
 import { getUserByUsername } from '@/lib/users'
 import { getWorksByUserId } from '@/lib/data'
 import { notFound } from 'next/navigation'
+import { type Metadata } from 'next'
 import BeforeAfterSlider from '@/app/components/BeforeAfterSlider'
 
 export const dynamic = 'force-dynamic'
 
-export default async function WorkPage({ params }: { params: Promise<{ username: string; workId: string }> }) {
+type Params = Promise<{ username: string; workId: string }>
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const { username, workId } = await params
+  const user = await getUserByUsername(username)
+  if (!user) return {}
+  const works = await getWorksByUserId(user.id)
+  const work = works.find(w => w.id === workId)
+  if (!work) return {}
+  const displayName = user.displayName || user.username
+  const image = work.imageUrl ?? work.afterImageUrl ?? work.beforeImageUrl
+  const desc = work.description
+    ? work.description.slice(0, 155)
+    : `${work.categories.join(', ')} — ${displayName}`
+  return {
+    title: work.title,
+    description: desc,
+    openGraph: {
+      title: `${work.title} — ${displayName}`,
+      description: desc,
+      ...(image ? { images: [image] } : {}),
+    },
+    twitter: { card: 'summary_large_image' },
+  }
+}
+
+export default async function WorkPage({ params }: { params: Params }) {
   const { username, workId } = await params
   const user = await getUserByUsername(username)
   if (!user) notFound()

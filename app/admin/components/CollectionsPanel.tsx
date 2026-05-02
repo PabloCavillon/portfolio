@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import type { Collection } from '@/lib/types'
+import { collectionUrl } from '@/lib/utils'
 
 interface Props {
   initialCollections: Collection[]
@@ -47,10 +48,10 @@ export default function CollectionsPanel({ initialCollections, username }: Props
     }
   }
 
-  function copyLink(id: string) {
-    const url = `${window.location.origin}/${username}/c/${id}`
+  function copyLink(col: Collection) {
+    const url = `${window.location.origin}${collectionUrl(username, col.id, col.name)}`
     navigator.clipboard.writeText(url).then(() => {
-      setCopied(id)
+      setCopied(col.id)
       setTimeout(() => setCopied(null), 2000)
     })
   }
@@ -126,13 +127,13 @@ export default function CollectionsPanel({ initialCollections, username }: Props
                 </div>
                 <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
                   <button
-                    onClick={() => copyLink(col.id)}
+                    onClick={() => copyLink(col)}
                     className="text-white/35 hover:text-white text-xs px-3 py-1.5 rounded-lg border border-white/10 hover:border-white/25 transition-colors whitespace-nowrap"
                   >
                     {copied === col.id ? '✓ Copiado' : 'Copiar enlace'}
                   </button>
                   <a
-                    href={`/${username}/c/${col.id}`}
+                    href={collectionUrl(username, col.id, col.name)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-white/35 hover:text-white text-xs px-3 py-1.5 rounded-lg border border-white/10 hover:border-white/25 transition-colors"

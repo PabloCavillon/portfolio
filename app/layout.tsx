@@ -13,9 +13,20 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Portfolio",
-  description: "Fotografía, edición y retoque",
-};
+  title: {
+    template: '%s · Portfolio',
+    default: 'Portfolio',
+  },
+  description: 'Galería de fotografía, edición y retoque digital',
+  openGraph: {
+    type: 'website',
+    locale: 'es_AR',
+    siteName: 'Portfolio',
+  },
+  twitter: {
+    card: 'summary_large_image',
+  },
+}
 
 export default function RootLayout({
   children,
@@ -24,7 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>

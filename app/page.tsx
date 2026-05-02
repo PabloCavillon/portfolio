@@ -1,14 +1,29 @@
 import { getAllWorks } from '@/lib/data'
 import { getUsersWithPreview } from '@/lib/users'
-import MainGrid from '@/app/components/MainGrid'
+import { getSession } from '@/lib/auth'
+import { type Metadata } from 'next'
+import InfiniteGrid, { type WorkItem } from '@/app/components/InfiniteGrid'
+import GuestBar from '@/app/components/GuestBar'
 
 export const dynamic = 'force-dynamic'
 
+export const metadata: Metadata = {
+  title: { absolute: 'Portfolio' },
+  description: 'Galería de fotografía, edición y retoque digital',
+  openGraph: {
+    title: 'Portfolio',
+    description: 'Galería de fotografía, edición y retoque digital',
+  },
+}
+
 export default async function Home() {
-  const [works, users] = await Promise.all([getAllWorks(), getUsersWithPreview()])
+  const [works, users, session] = await Promise.all([getAllWorks(), getUsersWithPreview(), getSession()])
+  const workItems: WorkItem[] = works
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-white">
+
+      {!session && <GuestBar />}
 
       <div className="pointer-events-none fixed -top-48 -left-24 h-128 w-lg rounded-full bg-white/2 blur-[120px]" />
       <div className="pointer-events-none fixed -top-16 right-1/4 h-72 w-72 rounded-full bg-white/1 blur-[90px]" />
@@ -28,7 +43,6 @@ export default async function Home() {
             className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-t border-white/8 pt-6 animate-fade-up"
             style={{ animationDelay: '160ms' }}
           >
-            {/* Photographer links */}
             {users.length > 0 && (
               <div className="flex flex-wrap gap-x-5 gap-y-1">
                 {users.map(u => (
@@ -53,7 +67,7 @@ export default async function Home() {
 
       <section className="px-6 pb-20 md:px-10 md:pb-28">
         <div className="max-w-5xl mx-auto">
-          <MainGrid works={works} />
+          <InfiniteGrid works={workItems} showAuthor randomize />
         </div>
       </section>
 
@@ -61,9 +75,6 @@ export default async function Home() {
         <p className="text-white/30 text-[11px] uppercase tracking-[0.35em]">
           Portfolio &nbsp;·&nbsp; {new Date().getFullYear()}
         </p>
-        <a href="/admin/register" className="inline-block mt-4 text-white/35 hover:text-white/65 text-[11px] uppercase tracking-[0.3em] transition-colors">
-          Acceder
-        </a>
       </footer>
 
     </main>
