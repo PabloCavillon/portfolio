@@ -1,19 +1,20 @@
 import { getUserByUsername } from '@/lib/users'
 import { getWorksByUserId } from '@/lib/data'
+import { toSlug } from '@/lib/utils'
 import { notFound } from 'next/navigation'
 import { type Metadata } from 'next'
 import BeforeAfterSlider from '@/app/components/BeforeAfterSlider'
 
 export const dynamic = 'force-dynamic'
 
-type Params = Promise<{ username: string; workId: string }>
+type Params = Promise<{ username: string; slug: string }>
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  const { username, workId } = await params
+  const { username, slug } = await params
   const user = await getUserByUsername(username)
   if (!user) return {}
   const works = await getWorksByUserId(user.id)
-  const work = works.find(w => w.id === workId)
+  const work = works.find(w => toSlug(w.title) === slug)
   if (!work) return {}
   const displayName = user.displayName || user.username
   const image = work.imageUrl ?? work.afterImageUrl ?? work.beforeImageUrl
@@ -33,12 +34,12 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 }
 
 export default async function WorkPage({ params }: { params: Params }) {
-  const { username, workId } = await params
+  const { username, slug } = await params
   const user = await getUserByUsername(username)
   if (!user) notFound()
 
   const works = await getWorksByUserId(user.id)
-  const idx = works.findIndex(w => w.id === workId)
+  const idx = works.findIndex(w => toSlug(w.title) === slug)
   if (idx === -1) notFound()
 
   const work = works[idx]
@@ -55,35 +56,28 @@ export default async function WorkPage({ params }: { params: Params }) {
 
         {/* Top nav */}
         <div className="flex items-center justify-between mb-6 md:mb-8 gap-4">
-          <a
-            href={`/${username}`}
-            className="text-white/35 hover:text-white/70 text-sm transition-colors"
-          >
+          <a href={`/${username}`} className="text-white/35 hover:text-white/70 text-sm transition-colors">
             ← {displayName}
           </a>
           <div className="flex gap-2">
             <a
-              href={prev ? `/${username}/${prev.id}` : '#'}
+              href={prev ? `/${username}/${toSlug(prev.title)}` : '#'}
               aria-disabled={!prev}
               className={`h-9 w-9 flex items-center justify-center border rounded-lg text-sm transition-colors ${
                 prev
                   ? 'border-white/15 text-white/50 hover:border-white/40 hover:text-white'
                   : 'border-white/7 text-white/20 pointer-events-none'
               }`}
-            >
-              ←
-            </a>
+            >←</a>
             <a
-              href={next ? `/${username}/${next.id}` : '#'}
+              href={next ? `/${username}/${toSlug(next.title)}` : '#'}
               aria-disabled={!next}
               className={`h-9 w-9 flex items-center justify-center border rounded-lg text-sm transition-colors ${
                 next
                   ? 'border-white/15 text-white/50 hover:border-white/40 hover:text-white'
                   : 'border-white/7 text-white/20 pointer-events-none'
               }`}
-            >
-              →
-            </a>
+            >→</a>
           </div>
         </div>
 
@@ -95,15 +89,9 @@ export default async function WorkPage({ params }: { params: Params }) {
             {work.type === 'before-after' && work.beforeImageUrl && work.afterImageUrl ? (
               <BeforeAfterSlider before={work.beforeImageUrl} after={work.afterImageUrl} alt={work.title} />
             ) : work.imageUrl ? (
-              <img
-                src={work.imageUrl}
-                alt={work.title}
-                className="w-full max-h-[85vh] object-contain"
-              />
+              <img src={work.imageUrl} alt={work.title} className="w-full max-h-[85vh] object-contain" />
             ) : (
-              <div className="aspect-video w-full flex items-center justify-center text-white/20">
-                Sin imagen
-              </div>
+              <div className="aspect-video w-full flex items-center justify-center text-white/20">Sin imagen</div>
             )}
           </div>
 
@@ -112,30 +100,20 @@ export default async function WorkPage({ params }: { params: Params }) {
             <div>
               <h1 className="text-white text-lg md:text-xl font-medium leading-snug">{work.title}</h1>
               {work.categories.length > 0 && (
-                <p className="text-white/45 text-xs uppercase tracking-wider mt-2">
-                  {work.categories.join(' · ')}
-                </p>
+                <p className="text-white/45 text-xs uppercase tracking-wider mt-2">{work.categories.join(' · ')}</p>
               )}
             </div>
-
             {work.description && (
-              <p className="text-white/65 text-sm leading-relaxed whitespace-pre-line">
-                {work.description}
-              </p>
+              <p className="text-white/65 text-sm leading-relaxed whitespace-pre-line">{work.description}</p>
             )}
-
             <div className="mt-auto pt-4 border-t border-white/8">
-              <a
-                href={`/${username}`}
-                className="text-white/35 hover:text-white/70 text-xs transition-colors"
-              >
+              <a href={`/${username}`} className="text-white/35 hover:text-white/70 text-xs transition-colors">
                 @{username}
               </a>
             </div>
           </div>
 
         </div>
-
       </div>
     </main>
   )

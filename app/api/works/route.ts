@@ -19,17 +19,24 @@ export async function POST(request: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const data = await request.json()
-  const work = await createWork(session.userId, {
-    title: data.title ?? '',
-    description: data.description ?? '',
-    categories: parseCategories(data.categories),
-    type: data.type ?? 'single',
-    imageUrl: data.imageUrl ?? null,
-    beforeImageUrl: data.beforeImageUrl ?? null,
-    afterImageUrl: data.afterImageUrl ?? null,
-    order: data.order ?? 0,
-    collectionId: data.collectionId ?? null,
-  })
-
-  return NextResponse.json(work, { status: 201 })
+  try {
+    const work = await createWork(session.userId, {
+      title: data.title ?? '',
+      description: data.description ?? '',
+      categories: parseCategories(data.categories),
+      type: data.type ?? 'single',
+      imageUrl: data.imageUrl ?? null,
+      beforeImageUrl: data.beforeImageUrl ?? null,
+      afterImageUrl: data.afterImageUrl ?? null,
+      order: data.order ?? 0,
+      collectionId: data.collectionId ?? null,
+    })
+    return NextResponse.json(work, { status: 201 })
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : ''
+    if (msg.includes('works_user_lower_title_idx') || msg.includes('unique')) {
+      return NextResponse.json({ error: 'Ya tenés un trabajo con ese título' }, { status: 409 })
+    }
+    throw e
+  }
 }

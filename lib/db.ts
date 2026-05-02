@@ -59,6 +59,15 @@ export async function initDB() {
       END IF;
     END $$
   `
+  // Only add unique title index if no duplicates exist (safe for existing data)
+  const { rows: dupCheck } = await sql`
+    SELECT 1 FROM works GROUP BY user_id, lower(title) HAVING count(*) > 1 LIMIT 1
+  `
+  if (dupCheck.length === 0) {
+    await sql`
+      CREATE UNIQUE INDEX IF NOT EXISTS works_user_lower_title_idx ON works (user_id, lower(title))
+    `
+  }
 
   // Seed initial admin if no users exist
   const { rowCount } = await sql`SELECT id FROM users LIMIT 1`

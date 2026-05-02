@@ -1,4 +1,5 @@
 import type { Work } from '@/lib/types'
+import { toSlug } from '@/lib/utils'
 
 interface Props {
   work: Work
@@ -16,7 +17,7 @@ export default function WorkCard({ work, username, featured, showAuthor }: Props
     >
       {/* Stretched main link — covers entire card */}
       <a
-        href={`/${username}/${work.id}`}
+        href={`/${username}/${toSlug(work.title)}`}
         className="absolute inset-0 z-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
         aria-label={work.title}
       />

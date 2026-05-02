@@ -28,9 +28,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     data.collectionId = data.collectionId ?? null
   }
 
-  const work = await updateWork(id, session.userId, data)
-  if (!work) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  return NextResponse.json(work)
+  try {
+    const work = await updateWork(id, session.userId, data)
+    if (!work) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    return NextResponse.json(work)
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : ''
+    if (msg.includes('works_user_lower_title_idx') || msg.includes('unique')) {
+      return NextResponse.json({ error: 'Ya tenés un trabajo con ese título' }, { status: 409 })
+    }
+    throw e
+  }
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

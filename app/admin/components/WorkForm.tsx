@@ -95,7 +95,8 @@ export default function WorkForm({ initialData, collections = [], onSaved, onCan
     if (res.ok) {
       onSaved(await res.json())
     } else {
-      setError('Error al guardar. Intentá de nuevo.')
+      const body = await res.json().catch(() => ({}))
+      setError(body.error ?? 'Error al guardar. Intentá de nuevo.')
       setSaving(false)
     }
   }
