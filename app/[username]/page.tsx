@@ -66,6 +66,11 @@ export default async function UserPortfolioPage({ params }: { params: Promise<{ 
         <p className="text-white/20 text-[11px] uppercase tracking-[0.35em]">
           {user.displayName || user.username} &nbsp;·&nbsp; {new Date().getFullYear()}
         </p>
+        {!session && (
+          <a href="/admin/login" className="inline-block mt-4 text-white/15 hover:text-white/40 text-[11px] uppercase tracking-[0.3em] transition-colors">
+            Acceder
+          </a>
+        )}
       </footer>
 
     </main>
