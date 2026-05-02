@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { upsertGoogleUser } from '@/lib/users'
 import { createSessionToken, SESSION_COOKIE } from '@/lib/auth'
 
+function getBaseUrl(request: NextRequest): string {
+  if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, '')
+  const proto = request.headers.get('x-forwarded-proto') ?? new URL(request.url).protocol.replace(':', '')
+  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? new URL(request.url).host
+  return `${proto}://${host}`
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl
   const code = searchParams.get('code')
@@ -12,7 +19,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/admin/login?error=oauth', request.url))
   }
 
-  const callbackUrl = new URL('/api/auth/google/callback', request.url).toString()
+  const callbackUrl = `${getBaseUrl(request)}/api/auth/google/callback`
 
   const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',

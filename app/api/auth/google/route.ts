@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { randomBytes } from 'crypto'
 
+function getBaseUrl(request: NextRequest): string {
+  if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, '')
+  const proto = request.headers.get('x-forwarded-proto') ?? new URL(request.url).protocol.replace(':', '')
+  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? new URL(request.url).host
+  return `${proto}://${host}`
+}
+
 export async function GET(request: NextRequest) {
   if (!process.env.GOOGLE_CLIENT_ID) {
     return NextResponse.redirect(new URL('/admin/login?error=oauth_config', request.url))
   }
 
   const state = randomBytes(16).toString('hex')
-  const callbackUrl = new URL('/api/auth/google/callback', request.url).toString()
+  const callbackUrl = `${getBaseUrl(request)}/api/auth/google/callback`
 
   const googleUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')
   googleUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID)
