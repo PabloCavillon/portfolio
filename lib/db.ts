@@ -50,6 +50,15 @@ export async function initDB() {
   await sql`ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL`
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT UNIQUE`
   await sql`ALTER TABLE works ADD COLUMN IF NOT EXISTS collection_id UUID REFERENCES collections(id) ON DELETE SET NULL`
+  await sql`
+    DO $$ BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'collections_user_name_unique'
+      ) THEN
+        ALTER TABLE collections ADD CONSTRAINT collections_user_name_unique UNIQUE (user_id, name);
+      END IF;
+    END $$
+  `
 
   // Seed initial admin if no users exist
   const { rowCount } = await sql`SELECT id FROM users LIMIT 1`

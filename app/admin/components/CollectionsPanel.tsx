@@ -36,7 +36,8 @@ export default function CollectionsPanel({ initialCollections, username }: Props
       setDescription('')
       setShowForm(false)
     } else {
-      setError('Error al crear la colección')
+      const body = await res.json().catch(() => ({}))
+      setError(body.error ?? 'Error al crear la colección')
     }
   }
 

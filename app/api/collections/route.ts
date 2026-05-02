@@ -15,9 +15,17 @@ export async function POST(request: NextRequest) {
   const data = await request.json()
   if (!data.name?.trim()) return NextResponse.json({ error: 'El nombre es requerido' }, { status: 400 })
 
-  const collection = await createCollection(session.userId, {
-    name: data.name.trim(),
-    description: data.description?.trim() ?? '',
-  })
-  return NextResponse.json(collection, { status: 201 })
+  try {
+    const collection = await createCollection(session.userId, {
+      name: data.name.trim(),
+      description: data.description?.trim() ?? '',
+    })
+    return NextResponse.json(collection, { status: 201 })
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : ''
+    if (msg.includes('collections_user_name_unique') || msg.includes('unique')) {
+      return NextResponse.json({ error: 'Ya tenés una colección con ese nombre' }, { status: 409 })
+    }
+    throw e
+  }
 }
